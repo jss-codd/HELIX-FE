@@ -1,0 +1,30 @@
+.half-doughnut {
+  position: absolute;
+  top: -50%;
+  left: 0;
+}
+
+.border-left-success {
+  border-left: 0.25rem solid var(--success) !important;
+  border-radius: 4px;
+}
+
+.border-left-info {
+  border-left: 0.25rem solid var(--info) !important;
+  border-radius: 4px;
+}
+
+.border-left-primary {
+  border-left: 0.25rem solid var(--primary) !important;
+  border-radius: 4px;
+}
+
+.border-left-warning {
+  border-left: 0.25rem solid var(--warning) !important;
+  border-radius: 4px;
+}
+
+.border-left-card {
+  border-left: 0.25rem solid var(--light) !important;
+  border-radius: 4px;
+}

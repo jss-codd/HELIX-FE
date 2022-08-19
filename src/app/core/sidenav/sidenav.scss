@@ -1,0 +1,46 @@
+@import "../../../styles/variables.scss";
+
+.sidenav {
+    left: 0px;
+    align-items: center;
+    display: block;
+    margin: auto;
+    cursor: pointer;
+    min-height: calc(100vh - 80px);
+}
+
+.rect {
+    height: 55px;
+    width: 55px;
+    background-color: #4e5664;
+    // position: relative;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    color: #3a4354;
+}
+
+.highlight {
+    background: white;
+    width: 55px;
+    height: 55px;
+    // position: relative;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    color: #4e5664;
+}
+
+.white-border{
+    border-color: $color-storm-grey;
+}
+
+.border-top-2px {
+    border-top-width: 2px !important;
+}
+.version{
+    color: white;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+}

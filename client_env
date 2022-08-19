@@ -1,0 +1,13 @@
+
+
+
+#API_URL=http://40.80.86.143:8081/api
+
+
+API_URL=http://localhost:8081/api
+
+KEYCLOAK_URL=http://localhost:8080
+REACT_APP_XEOKIT_URL=http://localhost:3000
+
+REACT_APP_XEOKIT_VIEWER=http://localhost:3002
+REACT_APP_SERVER_URL=http://localhost:8081
