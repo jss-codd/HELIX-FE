@@ -40,12 +40,10 @@ const Dashboard = ({ activeIndex, setActiveIndex, application }) => {
     onSuccess: (data) => {
       setSensors(data);
       if (data.length < 1) {
-        if (keycloackValue?.hasRealmRole("Add Sensor") && applicationList.includes(applicationType)) {
-          history.push(`/${applicationType}/sensor`);
-        }
-        else {
-          history.push('/notfound')
-        }
+        // if (keycloackValue?.hasRealmRole("Add Sensor") ) {
+        //   history.push(`/${applicationType}/sensor`);
+        // }
+        history.push(`/${applicationType}/sensor`);
       } else {
         console.log("--------else------------");
         setSelectedSensor(data[0]);
