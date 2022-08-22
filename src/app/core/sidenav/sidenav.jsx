@@ -1,6 +1,6 @@
 /* eslint-disable import/no-unresolved */
 import React, { useState, useEffect } from "react";
-import { Link, useLocation, useHistory } from "react-router-dom";
+import { Link, useLocation, useHistory,useParams } from "react-router-dom";
 import { Nav, NavItem, NavLink, Col } from "reactstrap";
 import { Tooltip } from "antd";
 import { Menus } from "@app/util/appAccess";
@@ -11,6 +11,7 @@ import axios from "axios";
 const Sidenav = ({ solutions, roles, setClickedSolution, version }) => {
   const location = useLocation();
   const [applicationList, setApplicationList] = useState([])
+  
 
   useEffect(() => {
     setClickedSolution(location?.pathname.split('/')[1])
@@ -33,6 +34,8 @@ const Sidenav = ({ solutions, roles, setClickedSolution, version }) => {
     setApplicationList(apps?.data)
 
   }
+
+  console.log("----------------locaton--- location----locationlocation----",location);
 
 
 
@@ -80,16 +83,17 @@ const Sidenav = ({ solutions, roles, setClickedSolution, version }) => {
           if (menu)
             return (
               <NavItem key={menu.name.toUpperCase()}>
+                {console.log(`---------------34333333---sss---------------/application/:${menu.name}`)}
                 <NavLink
                   tag={Link}
                   className="text-white text-center"
-                  to={`/${menu.name}`}
+                  to={`/application/${menu.name}`}
 
                 >
                   <Tooltip title={menu.name} placement="right">
                     <div
                       className={
-                        `/${location.pathname.split("/")[1]}` === `/${menu.name}` ? "highlight" : "rect"
+                        `/${location.pathname.split("/")[1]}` === `/application/${menu.name}` ? "highlight" : "rect"
                       }
                     >
                       {<img src={menu?.logo} width="30" height="30" alt="not found" />}

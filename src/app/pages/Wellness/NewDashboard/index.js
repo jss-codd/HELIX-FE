@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useContext } from "react";
-import { useHistory, useLocation } from "react-router-dom";
+import { useHistory, useLocation,useParams } from "react-router-dom";
 import moment from "moment";
 import {
   Divider,
@@ -23,27 +23,33 @@ import { AuthContext } from "../../../../app";
 // import Chart from "../Analytics/Chart";
 // import { connect } from "react-redux";
 
-const Dashboard = ({ activeIndex, setActiveIndex, application }) => {
+const Dashboard = ({ activeIndex, setActiveIndex, application ,match }) => {
   const value = useContext(AuthContext);
   const keycloackValue = value;
   const [sensors, setSensors] = useState([]);
   const [selectedSensor, setSelectedSensor] = useState(null);
   const location = useLocation()
-  const applicationType = location?.pathname.split('/')[1]
+ 
   const applicationList = application.map(d=>d.name)
 
   const history = useHistory();
+  const params = useParams()
+
+ 
+
+  console.log("--------------type--------- type-----------",params );
 
   const { loading, fetchData: getSensors } = useFetch({
-    url: `${process.env.API_URL}/sensors?applicationType=${applicationType}`,
+    url: `${process.env.API_URL}/sensors?applicationType=${params?.type}`,
     method: "GET",
     onSuccess: (data) => {
       setSensors(data);
-      if (data.length < 1) {
+      if (data.length < 1) 
+      {
         // if (keycloackValue?.hasRealmRole("Add Sensor") ) {
-        //   history.push(`/${applicationType}/sensor`);
+        //   history.push(`/${params?.type}/sensor`);
         // }
-        history.push(`/${applicationType}/sensor`);
+        // history.push(`/${params?.type}/sensor`);
       } else {
         console.log("--------else------------");
         setSelectedSensor(data[0]);
@@ -65,13 +71,13 @@ const Dashboard = ({ activeIndex, setActiveIndex, application }) => {
   }));
 
   const { fetchData: deleteSensor } = useFetch((sensorId) => ({
-    url: `${process.env.API_URL}/sensors/${sensorId}?type=${applicationType}`,
+    url: `${process.env.API_URL}/sensors/${sensorId}?type=${params?.type}`,
     method: "DELETE",
     onSuccess: () => {
       const ss = sensors.filter((sensor) => sensor._id !== sensorId);
       setSensors([...ss]);
       if (ss.length < 1) {
-        history.push(`/${applicationType}/sensor`);
+        history.push(`/${params?.type}/sensor`);
       } else {
         setSelectedSensor(ss[0]);
       }
@@ -102,7 +108,7 @@ const Dashboard = ({ activeIndex, setActiveIndex, application }) => {
 
   const handleEditSensor = () => {
     if (selectedSensor) {
-      history.push(`/${applicationType}/sensor/${selectedSensor._id}`);
+      history.push(`/${params?.type}/sensor/${selectedSensor._id}`);
     } else {
       message.error("No sensor selected!");
     }
@@ -217,7 +223,7 @@ const Dashboard = ({ activeIndex, setActiveIndex, application }) => {
                     className="ml-3"
                     icon={<i className="fa fa-plus text-primary" />}
                     onClick={() => {
-                      history.push(`/${applicationType}/sensor`);
+                      history.push(`/${params?.type}/sensor`);
                     }}
                   />
                 </Tooltip>
@@ -277,7 +283,7 @@ const Dashboard = ({ activeIndex, setActiveIndex, application }) => {
               onClick={() => {
                 history.push(
                   {
-                    pathname: `/${applicationType}/chart`,
+                    pathname: `../application/${params?.type}/chart`,
                     search: `?device=${selectedSensor.device_id}`,
                   });
               }}

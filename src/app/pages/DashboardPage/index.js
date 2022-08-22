@@ -23,7 +23,7 @@ const DashboardPage = ({ setUserData, userData }) => {
     method: "POST",
     onSuccess: (data) => {
       setUserData(data);
-      history.push(`/${params.solution}`);
+      history.push(`application/${params.solution}`);
     },
     onError: (error) => {
       message.error(error);

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Route, Switch, Redirect, useLocation } from "react-router-dom";
+import { Route, Switch, Redirect, useLocation ,useParams } from "react-router-dom";
 import Header from "./app/core/header/header";
 import Sidenav from "./app/core/sidenav/sidenav";
 import NotFoundPage from "./app/pages/NotFoundPage";
@@ -32,6 +32,7 @@ const App = (props) => {
   const [clickedSolution, setClickedSolution] = useState("");
   const [application, setApplication] = useState([]);
   const location = useLocation();
+  const params = useParams()
 
   const { loading, fetchData: getUserData } = useFetch({
     url: `${process.env.API_URL}/user/info`,
@@ -77,32 +78,35 @@ const App = (props) => {
 
   useEffect(() => {
     if (keycloak !== null) {
+      // getApps();
       getUserData();
     }
+    
   }, [keycloak]);
 
   console.log("----99999---", userData);
+  console.log("--------------- use paraams------------teterreree-------",params,"--------------",props?.match);
 
   useEffect(() => {
     console.log(
-      "------- const location = useLocation();  const location = useLocation(); const location = useLocation(); const location = useLocation();------",
+      "------- const location = **********************************useLocation();  const location = useLocation(); const location = useLocation(); const location = useLocation();------",
       clickedSolution
     );
   }, [clickedSolution]);
 
-  const getApps = async () => {
-    const accessToken = localStorage.getItem("accessToken");
-    const apps = await axios.get(`${process.env.API_URL}/application`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-    setApplication(apps.data);
-  };
+  // const getApps = async () => {
+  //   const accessToken = localStorage.getItem("accessToken");
+  //   const apps = await axios.get(`${process.env.API_URL}/application`, {
+  //     headers: {
+  //       Authorization: `Bearer ${accessToken}`,
+  //     },
+  //   });
+  //   setApplication(apps.data);
+  // };
 
-  useEffect(() => {
-    getApps();
-  }, []);
+  // useEffect(() => {
+  //   getApps();
+  // }, []);
 
   return !authenticated || loading ? (
     <div className="d-flex flex-column justify-content-center align-items-center vh-100">
@@ -155,15 +159,51 @@ const App = (props) => {
                 )}
               />
               <Redirect from="/" to="/dashboards" exact />
-              <Route exact path="/notfound" component={NotFoundPage} />
+              {/* <Route exact path="/notfound" component={NotFoundPage} /> */}
 
-              {console.log(
+
+
+              <>
+                    <Route
+                      exact
+                      path={`/application/:type`}
+                      render={(routeProps) => (
+                        <Wellness
+                          setUserData={setUserData}
+                          {...routeProps}
+                          application={application}
+                        />
+                      )}
+                    />
+                    <Route
+                      exact
+                      path={`/application/:type/sensor`}
+                      component={WellnessAddSensorPage}
+                    />
+                    <Route
+                      exact
+                      path={`/application/:type/sensor/:sensorId`}
+                      component={WellneessUpdateSensorPage}
+                    />
+                    <Route
+                      exact
+                      path={`/application/:type/chart`}
+                      component={Chart}
+                    />
+                  </>
+
+
+
+
+
+
+              {/* {console.log(
                 "------------solutions--------",
                 userData?.solutions
               )}
 
               {application?.map((sol, idx) => {
-                console.log("----sol---", sol);
+                console.log("----sol---", sol.name);
                 return (
                   <>
                     <Route
@@ -194,7 +234,7 @@ const App = (props) => {
                     />
                   </>
                 );
-              })}
+              })} */}
 
               <Route
                 // key={idx}

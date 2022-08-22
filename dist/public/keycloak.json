@@ -1,6 +1,6 @@
 {
   "realm": "washroom",
-  "auth-server-url": "http://40.81.244.217:8080/auth/",
+  "auth-server-url": "http://localhost:8080/auth/",
   "ssl-required": "none",
   "resource": "react-app",
   "public-client": true,
