@@ -188,7 +188,7 @@ const App = (props) => {
                     <Route
                       exact
                       path={`/application/:type/chart`}
-                      component={Chart}
+                      component={WellnessChart}
                     />
                   </>
 

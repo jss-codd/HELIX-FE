@@ -14,7 +14,7 @@ import "react-resizable/css/styles.css";
 import "./index.scss";
 import "./index.less";
 
-const version = "1.0.16"
+const version = "1.0.24"
 
 /* 
 Version : 1.0.0,
@@ -92,6 +92,35 @@ Author: Aniket Pandey,
 Date: 19 aug 2022,
 changes: fix issue related to application .
 
+Version : 1.0.16,
+Author: Aniket Pandey,
+Date: 20 aug 2022,
+changes: fix issue 404 no found  .
+
+Version : 1.0.17,
+Author: Aniket Pandey,
+Date: 24 aug 2022,
+changes: Hel-44 reappear legend issue.
+
+Version : 1.0.18,
+Author: Aniket Pandey,
+Date: 26 aug 2022,
+changes: kafka implemetation.
+
+Version : 1.0.19,
+Author: Aniket Pandey,
+Date: 29 aug 2022,
+changes: Chart Dashboard New UI.
+
+Version : 1.0.20,
+Author: Aniket Pandey,
+Date: 29 aug 2022,
+changes: Chart Dashboard Widgets text width issue .
+
+Version : 1.0.21,
+Author: Aniket Pandey,
+Date: 30 aug 2022,
+changes: fix chart date , add typo in add sensor and Sensor Provisioning page .
 */
 
 //redux

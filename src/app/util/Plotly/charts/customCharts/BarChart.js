@@ -4,44 +4,39 @@ import { useWindowSize } from "react-use";
 import { groupBy } from "lodash";
 import moment from "moment";
 import TableView from "../TableView";
-
+import { Button, CircularProgress } from "@mui/material";
 
 function BarChart(props) {
   const customRowData = props.data;
+  const { setChartLoader, chartLoader, editableBox, idx, zoomedHeight, setContainers, containers, zoomed } = props;
   const {
     data,
     title,
     xAxisCol,
-    yAxisCol,
-    y2AxisCol,
-    ycolor,
-    y2color,
     tableRow,
     chartMode,
-    dataName,
-    yLegend,
-    xLegend,
     width,
     height,
     showLegend,
-    showAxis,
-    barWidth,
-    scatterSize,
     colsNumber,
     showText,
     barGap,
     xGroupBy,
     axisFontSize,
-    tableView
+    tableView,
+    xRange,
+    yRange,
   } = customRowData;
 
-  const plotHeight = tableView ? (height - 30) / 2 : (height - 30)
+  const newFontSize = zoomed === idx ? axisFontSize + 2 : axisFontSize;
+  const newheight = zoomed === idx ? zoomedHeight : 225;
+  const plotHeight = tableView && zoomed === idx ? (newheight - 30) / 2 : (newheight - 30)
 
-  // const handleData = (label) => {
-  //   return data?.map?.((dt) => {
-  //     return dt[label];
-  //   });
-  // };
+  useEffect(() => {
+    setTimeout(() => {
+      setChartLoader(false)
+    }, 3000);
+  }, [customRowData])
 
   const groupbyData =
     xAxisCol &&
@@ -149,6 +144,9 @@ function BarChart(props) {
             customRowData[operationMethod]
           );
         }
+        if (customRowData["legendStatus"]?.includes(index)) {
+          obj.visible = "legendonly"
+        }
         dataArray.push(obj);
       });
     return dataArray;
@@ -166,62 +164,119 @@ function BarChart(props) {
     });
     return dt;
   })
+
+  const layout = {
+    autosize: true,
+    barmode: chartMode,
+    title: {
+      text: title,
+      font: {
+        size: 15,
+        color: "#000000",
+      },
+      y: zoomed === idx ? "auto" : 0.89,
+    },
+    orientation: "v",
+    y: 1,
+    x: 1,
+    font: {
+      family: "sans-serif",
+      size: newFontSize,
+      color: "#000000",
+    },
+    // width: width,
+    height: plotHeight,
+    margin: {
+      l: 40,
+      r: 20,
+      b: 50,
+      t: 30,
+      pad: 0,
+    },
+    xaxis: {
+      title: xAxisCol,
+      tickfont: {
+        size: newFontSize,
+      },
+      range: xRange,
+      // fixedrange: true,
+      // showticklabels: showAxis,
+    },
+    yaxis: {
+      title: customRowData.yAxisCol1,
+      tickfont: {
+        size: newFontSize,
+      },
+      range: yRange
+      // fixedrange: true,
+      // showticklabels: showAxis,
+    },
+    legend: {
+      font: {
+        family: "sans-serif",
+        size: newFontSize,
+        color: "#000000"
+        ,
+      },
+    },
+    bargap: barGap,
+    showlegend: zoomed === idx ? true : false,
+  }
   const config = {
+    responsive: true,
     scrollZoom: true,
     displayModeBar: true,
     // editable: true,
     displaylogo: false,
     modeBarButtonsToRemove: ['zoom2d', 'select2d', 'lasso2d']
   };
+
+  const handleLegend = (e) => {
+    setContainers((prev) =>
+      prev.map((dt, index) => {
+        if (idx === index) {
+          let arr = dt?.legendStatus ? dt?.legendStatus : []
+          if (arr.includes(e.expandedIndex)) {
+            arr.splice(arr.indexOf(e.expandedIndex), 1);
+          } else {
+            arr.push(e.expandedIndex)
+          }
+          return {
+            ...dt,
+            legendStatus: arr
+          };
+        }
+        return dt;
+      })
+    );
+  }
+
+  const handleUpdate = (layout) => {
+    let arr = containers;
+    arr[idx].yRange = layout?.yaxis?.range;
+    arr[idx].xRange = layout?.xaxis?.range;
+    setContainers(arr);
+  }
+
   return (
-    <>
+    <>  {chartLoader && editableBox === idx && (
+      <div className="app-loader">
+        <div>
+          <CircularProgress size={20} color="primary" />
+        </div>
+      </div>
+    )}
       <div style={{ height: "100%", width: "100%" }}>
         <div>
           <Plot
             data={handleBarData()}
-            layout={{
-              barmode: chartMode,
-              title: title,
-              orientation: "v",
-              y: 1,
-              x: 1,
-              font: {
-                family: "sans-serif",
-                size: axisFontSize,
-                color: "#5c5c5c"
-                ,
-              },
-              width: width,
-              height: plotHeight,
-              margin: {
-                l: 40,
-                r: 20,
-                b: 70,
-                t: 70,
-                pad: 0,
-              },
-              xaxis: {
-                title: xAxisCol,
-                tickfont: {
-                  size: axisFontSize,
-                },
-                // fixedrange: true,
-                // showticklabels: showAxis,
-              },
-              yaxis: {
-                title: customRowData.yAxisCol1,
-                tickfont: {
-                  size: axisFontSize,
-                },
-                // fixedrange: true,
-                // showticklabels: showAxis,
-              },
-              bargap: barGap,
-              showlegend: showLegend,
-            }}
+            layout={layout}
             config={config}
+            onUpdate={(e) => handleUpdate(e.layout)}
+            onLegendClick={(e) => handleLegend(e)}
+            style={{ width: "100%", height: "100%" }}
           /></div>
-        {tableView && <div style={{ height: "47%" }}><TableView rowsNew={rowsNew} tableRow={tableRow} /></div>}
+        {tableView && zoomed === idx && <div style={{ height: "47%" }}><TableView rowsNew={rowsNew} tableRow={tableRow} /></div>}
       </div>
     </>
   );

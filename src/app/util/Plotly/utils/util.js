@@ -113,11 +113,14 @@ export const ChartType = [
 export const ChartModes = [
   {
     name: "single data",
+    value: "single"
   },
   {
     name: "group data",
+    value: "group"
   },
   {
     name: "stack data",
+    value: "stack"
   },
 ];

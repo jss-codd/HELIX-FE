@@ -23,6 +23,7 @@ import axios from "axios";
 import { Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 import { ColorLensOutlined } from "@material-ui/icons";
 import debounce from 'lodash.debounce';
+import { borderTop } from "@mui/system";
 const AddSensorPage = (
   {
     // initialValues = {}
@@ -70,26 +71,81 @@ const AddSensorPage = (
   const [gatewayError, setGatewayErorr] = useState(false)
   const [sensorType, setSensorType] = useState("")
   const currentPath = history.location.pathname.split("/");
-  const  location = useLocation()
-  const  applicationType = location?.pathname.split('/')[1]
+  const location = useLocation()
+  const applicationType = location?.pathname.split('/')[2]
+  const [publishDataType, setPublishDataType] = useState("None")
+  console.log("----f-----", publishDataType);
 
 
   const uploadTopic = async (params) => {
-    console.log("------------prarams-----------",params);
-    setSubmitLoader(true)
+
+    // setSubmitLoader(true)
     const formData = new FormData();
+
+
+    // ------------mqtt-------
+    formData.append("file", params.publishMqtt?.keyfile);
+    formData.append("file", params.publishMqtt?.crtfile);
+    formData.append("file", params.publishMqtt?.rootcafile);
+
+    // -----kafka--------------------------------
+
+    formData.append("file", params.publishKafka?.keyfile);
+    formData.append("file", params.publishKafka?.crtfile);
+    formData.append("file", params.publishKafka?.rootcafile);
+
+
+    // eslint-disable-next-line no-unused-expressions
+    if (params.publishMqtt !== null && params.publishMqtt !== undefined) {
+      params.publishMqtt.keyfile = params.publishMqtt?.keyfile?.name
+      params.publishMqtt.crtfile = params.publishMqtt?.crtfile?.name
+      params.publishMqtt.rootcafile = params.publishMqtt?.rootcafile?.name
+
+    }
+    else {
+      delete params?.publishMqtt
+    }
+    if (params.publishKafka !== null && params.publishKafka !== undefined) {
+      params.publishKafka.keyfile = params.publishKafka?.keyfile?.name
+      params.publishKafka.crtfile = params.publishKafka?.crtfile?.name
+      params.publishKafka.rootcafile = params.publishKafka?.rootcafile?.name
+
+    }
+    else {
+      delete params?.publishKafka
+    }
+
+
+
+    console.log("------------prarams-----------", params);
+
+
+
+
+
+
+
+
+
+
+
+
     formData.append("gatewayId", JSON.stringify(params));
-    formData.append("topicname", params.publish?.topicname);
-    formData.append("hosturl", params.publish?.hosturl);
-    formData.append("file", params.publish?.keyfile);
-    formData.append("keyFileName", params.publish?.keyfile?.name);
-    formData.append("file", params.publish?.crtfile);
-    formData.append("crtFileName", params.publish?.crtfile?.name);
-    formData.append("file", params.publish?.rootcafile);
-    formData.append("rootCAFileName", params.publish?.rootcafile?.name);
-    formData.append("port", params?.publish?.port);
+
+
+
+    // formData.append("topicname", params.publish?.topicname);
+    // formData.append("hosturl", params.publish?.hosturl);
+
+    // formData.append("keyFileName", params.publish?.keyfile?.name);
+
+    // formData.append("crtFileName", params.publish?.crtfile?.name);
+
+    // formData.append("rootCAFileName", params.publish?.rootcafile?.name);
+    // formData.append("port", params?.publish?.port);
     const accessToken = localStorage.getItem("accessToken");
-    const type = currentPath[1];
+    const type = currentPath[2];
+
 
     try {
       let res = await axios.post(
@@ -245,9 +301,9 @@ const AddSensorPage = (
       setSelectedSolution(null);
       setIsNewSolution(false);
     } else {
-      console.log("--------selectedInfra-----",selectedInfra);
+      console.log("--------selectedInfra-----", selectedInfra);
       const floor = selectedInfra.floors?.find((it) => it._id === value);
-      console.log("----------floor----",floor);
+      console.log("----------floor----", floor);
       setSelectedFloor(floor);
       setFieldValue("floor", floor);
       setIsNewFloor(false);
@@ -264,11 +320,11 @@ const AddSensorPage = (
     } else {
       const solution = selectedFloor?.solutions.find((it) => it._id === value);
       setSelectedSolution(solution);
-      setFieldValue("solution",solution);
+      setFieldValue("solution", solution);
       setIsNewSolution(false);
     }
   };
- 
+
   const handleDownloadCert = () => {
     const accessToken = localStorage.getItem("accessToken");
     fetch(`${process.env.API_URL}/sensors/${currentSensor._id}/certificates`, {
@@ -492,7 +548,7 @@ const AddSensorPage = (
         className="row position-relative"
         style={{ display: "flex", flexDirection: "row" }}
       >
-        <div className="col-md-3">
+        <div className="col-md-5">
           <h2 className="text-mandy font-weight-bold">
             <img
               src={washroomIcon}
@@ -501,7 +557,7 @@ const AddSensorPage = (
               className="mr-3"
               style={{ marginTop: -8 }}
             />
-            Add Sensor
+            Add Sensor | {applicationType}
           </h2>
         </div>
         <div
@@ -540,13 +596,13 @@ const AddSensorPage = (
           )}
           {/* {console.log("---",keycloackValue,"--------",selectedProductId )} */}
 
-          {keycloackValue?.hasRealmRole("Download Cobie") && selectedProductId && (
+          { (
             <div
               onClick={() => downloadCobie()}
               style={{
                 display: "flex",
                 flexDirection: "row",
-                marginLeft: "120px",
+                marginLeft: "100px",
                 cursor: "pointer",
               }}
             >
@@ -565,7 +621,7 @@ const AddSensorPage = (
               style={{
                 display: "flex",
                 flexDirection: "row",
-                marginLeft: "120px",
+                marginLeft: "100px",
                 cursor: "pointer",
               }}
             >
@@ -582,7 +638,7 @@ const AddSensorPage = (
                 name="models"
                 id="models"
                 onChange={(e) => {
-                  setSelectedProductId(e.target.value);setShowIframe(true);
+                  setSelectedProductId(e.target.value); setShowIframe(true);
                 }}
               >
                 <option value="" disabled={true}>
@@ -852,9 +908,9 @@ const AddSensorPage = (
                       name="solution._id"
                       hasFeedback
                       // validate={(value) => !value && "Please select washroom"}
-                      validate={(value) => !value && "Please select "+applicationType}
+                      validate={(value) => !value && "Please select " + applicationType}
                     >
-                      {console.log("-------selectedFloor-----",selectedFloor)}
+                      {console.log("-------selectedFloor-----", selectedFloor)}
                       <Select
                         name="solution._id"
                         // placeholder="Washroom"
@@ -904,119 +960,349 @@ const AddSensorPage = (
                 />
                 <h6 className="font-weight-bold ml-3 ">Publish data to: </h6>
                 <>
-                  <Form.Item
-                    label="Topic Name"
-                    name="publish.topicname"
-                    // validate={(value) =>
-                    //   !value && "Please enter topic name"
-                    // }
-                    hasFeedback
-                  // onChange={(e)=>onChangeTopic(e.target.value)}
-                  >
-                    <Input
-                      name="publish.topicname"
-                      placeholder="Topic Name"
-                      required={false}
 
-                    />
-                    {topicError && <div style={{ color: "red" }} >This topic exist already.</div>}
+                  <div style={{ display: "flex", justifyContent: 'flex-end', alignItems: 'center', marginBottom: '14px' }}>
+                    <div className="form-check" style={{ marginRight: "10%" }}>
+                      <input className="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1" style={{ cursor: "pointer" }} onChange={(e) => { setPublishDataType("Mqtt"); setFieldValue("publishKafka", null); setFieldValue("publishMqtt", null); }} />
+                      <label className="form-check-label" htmlFor="flexRadioDefault1" style={{ cursor: "pointer" }} >
+                        Mqtt
+                      </label>
+                    </div>
+                    <div className="form-check" style={{ marginRight: "10%" }} >
+                      <input className="form-check-input " type="radio" name="flexRadioDefault" id="flexRadioDefault2" style={{ cursor: "pointer" }} onChange={(e) => { setPublishDataType("Kafka"); setFieldValue("publishMqtt", null); setFieldValue("publishKafka", null); }} />
+                      <label className="form-check-label" htmlFor="flexRadioDefault2" style={{ cursor: "pointer" }} >
+                        Kafka
+                      </label>
+                    </div>
+                    <div className="form-check" style={{ marginRight: "10%" }}  >
+                      <input className="form-check-input " type="radio" name="flexRadioDefault" id="flexRadioDefault3" style={{ cursor: "pointer" }} onChange={(e) => { setPublishDataType("Both"); setFieldValue("publishMqtt", null); setFieldValue("publishKafka", null); }} />
+                      <label className="form-check-label" htmlFor="flexRadioDefault3" style={{ cursor: "pointer" }} >
+                        Both
+                      </label>
+                    </div>
+                    <div className="form-check" style={{ marginRight: "2%" }} >
+                      <input className="form-check-input " type="radio" name="flexRadioDefault" id="flexRadioDefault4" style={{ cursor: "pointer" }} defaultChecked={true} onChange={(e) => { setPublishDataType("None"); setFieldValue("publishMqtt", null); setFieldValue("publishKafka", null); }} />
+                      <label className="form-check-label" htmlFor="flexRadioDefault4" style={{ cursor: "pointer" }} >
+                        None
+                      </label>
+                    </div>
+                  </div>
 
-                  </Form.Item>
+                  {(publishDataType === "Mqtt" || publishDataType === "Both" ) && (<div style={{ display: "flex", justifyContent: "center", alignItems: "center", paddingLeft: "60px" }} ><hr style={{ width: "100%", borderTop: "1px solid rgba(0,0,0,0.1)" }} ></hr> <p style={{ margin: "15px 15px 15px 15px" }} >Mqtt</p> <hr style={{ width: "100%", borderTop: "1px solid rgba(0,0,0,0.1)" }}    ></hr></div>)}
 
-                  <Form.Item
-                    label="Host Url"
-                    name="publish.hosturl"
-                    // validate={(value) =>
-                    //   !value && "Please enter hosturl"
-                    // }
-                    hasFeedback
-                  // onChange={(e)=>onChangeHost(e.target.value)}
-                  >
-                    <Input
-                      name="publish.hosturl"
-                      placeholder="Host - such as 3.125.248.157 ..."
-                      required={false}
-                    />
-                  </Form.Item>
-                  <Form.Item
-                    label="Port"
-                    name="publish.port"
-                    // validate={(value) =>
-                    //   !value && "Please enter hosturl"
-                    // }
-                    hasFeedback
-                  // onChange={(e)=>onChangePort(e.target.value)}
-                  >
-                    <Input
-                      name="publish.port"
-                      placeholder="Port - such as 1883,8883 ..."
-                      required={false}
-                    />
-                  </Form.Item>
+                  {(publishDataType === "Mqtt" || publishDataType === "Both") && (
+                    <>
+                      <Form.Item
+                        label="Topic Name"
+                        name="publishMqtt.topic"
+                        // validate={(value) =>
+                        //   !value && "Please enter topic name"
+                        // }
+                        hasFeedback
+                      // onChange={(e)=>onChangeTopic(e.target.value)}
+                      >
+                        <Input
+                          name="publishMqtt.topic"
+                          placeholder="Topic Name"
+                          required={false}
 
-                  <Form.Item
-                    label="Key File"
-                    name="publish.keyfile"
-                    // validate={(value) =>
-                    //   !value && "Please enter key file"
-                    // }
-                    hasFeedback
-                  >
-                    <input
-                      id="file"
-                      required={false}
-                      name="publish.keyfile"
-                      type="file"
-                      onChange={(event) => {
-                        setFieldValue(
-                          "publish.keyfile",
-                          event.currentTarget.files[0]
-                        );
-                      }}
-                    />
-                  </Form.Item>
-                  <Form.Item
-                    label="Crt File"
-                    name="publish.crtfile"
-                    // validate={(value) =>
-                    //   !value && "Please enter crt file"
-                    // }
-                    hasFeedback
-                  >
-                    <input
-                      id="file"
-                      required={false}
-                      name="publish.crtfile"
-                      type="file"
-                      onChange={(event) => {
-                        setFieldValue(
-                          "publish.crtfile",
-                          event.currentTarget.files[0]
-                        );
-                      }}
-                    />
-                  </Form.Item>
-                  <Form.Item
-                    label="RootCA File"
-                    name="publish.rootcafile"
-                  // validate={(value) =>
-                  //   !value && "Please enter rootca file"
-                  // }
-                  // hasFeedback
-                  >
-                    <input
-                      id="file"
-                      required={false}
-                      name="publish.rootcafile"
-                      type="file"
-                      onChange={(event) => {
-                        setFieldValue(
-                          "publish.rootcafile",
-                          event.currentTarget.files[0]
-                        );
-                      }}
-                    />
-                  </Form.Item>
+                        />
+                        {topicError && <div style={{ color: "red" }} >This topic exist already.</div>}
+
+                      </Form.Item>
+
+                      <Form.Item
+                        label="Host Url"
+                        name="publishMqtt.host"
+                        // validate={(value) =>
+                        //   !value && "Please enter hosturl"
+                        // }
+                        hasFeedback
+                      // onChange={(e)=>onChangeHost(e.target.value)}
+                      >
+                        <Input
+                          name="publishMqtt.host"
+                          placeholder="Host - such as 3.125.248.157 ..."
+                          required={false}
+                        />
+                      </Form.Item>
+                      <Form.Item
+                        label="Port"
+                        name="publishMqtt.port"
+                        // validate={(value) =>
+                        //   !value && "Please enter hosturl"
+                        // }
+                        hasFeedback
+                      // onChange={(e)=>onChangePort(e.target.value)}
+                      >
+                        <Input
+                          name="publishMqtt.port"
+                          placeholder="Port - such as 1883,8883 ..."
+                          required={false}
+                        />
+                      </Form.Item>
+
+                      <Form.Item
+                        label="Username"
+                        name="publishMqtt.username"
+                        // validate={(value) =>
+                        //   !value && "Please enter hosturl"
+                        // }
+                        hasFeedback
+                      // onChange={(e)=>onChangePort(e.target.value)}
+                      >
+                        <Input
+                          name="publishMqtt.username"
+                          placeholder="Username"
+                          required={false}
+                        />
+                      </Form.Item>
+
+                      <Form.Item
+                        label="password"
+                        name="publishMqtt.password"
+                        // validate={(value) =>
+                        //   !value && "Please enter hosturl"
+                        // }
+                        hasFeedback
+                      // onChange={(e)=>onChangePort(e.target.value)}
+                      >
+                        <Input
+                          name="publishMqtt.password"
+                          placeholder="Password"
+                          required={false}
+                        />
+                      </Form.Item>
+
+                      <Form.Item
+                        label="Key File"
+                        name="publishMqtt.keyfile"
+                        // validate={(value) =>
+                        //   !value && "Please enter key file"
+                        // }
+                        hasFeedback
+                      >
+                        <input
+                          id="file"
+                          required={false}
+                          name="publishMqtt.keyfile"
+                          type="file"
+                          onChange={(event) => {
+                            setFieldValue(
+                              "publishMqtt.keyfile",
+                              event.currentTarget.files[0]
+                            );
+                          }}
+                        />
+                      </Form.Item>
+                      <Form.Item
+                        label="Crt File"
+                        name="publishMqtt.crtfile"
+                        // validate={(value) =>
+                        //   !value && "Please enter crt file"
+                        // }
+                        hasFeedback
+                      >
+                        <input
+                          id="file"
+                          required={false}
+                          name="publishMqtt.crtfile"
+                          type="file"
+                          onChange={(event) => {
+                            setFieldValue(
+                              "publishMqtt.crtfile",
+                              event.currentTarget.files[0]
+                            );
+                          }}
+                        />
+                      </Form.Item>
+                      <Form.Item
+                        label="RootCA File"
+                        name="publishMqtt.rootcafile"
+                      // validate={(value) =>
+                      //   !value && "Please enter rootca file"
+                      // }
+                      // hasFeedback
+                      >
+                        <input
+                          id="file"
+                          required={false}
+                          name="publishMqtt.rootcafile"
+                          type="file"
+                          onChange={(event) => {
+                            setFieldValue(
+                              "publishMqtt.rootcafile",
+                              event.currentTarget.files[0]
+                            );
+                          }}
+                        />
+                      </Form.Item>
+                    </>
+                  )}
+                  {(publishDataType === "Kafka" || publishDataType === "Both") && (<div style={{ display: "flex", justifyContent: "center", alignItems: "center", paddingLeft: "60px" }} ><hr style={{ width: "100%", borderTop: "1px solid rgba(0,0,0,0.1)" }} ></hr> <p style={{ margin: "15px 15px 15px 15px" }} >Kafka</p> <hr style={{ width: "100%", borderTop: "1px solid rgba(0,0,0,0.1)" }}    ></hr></div>)}
+
+
+
+
+
+                  {(publishDataType === "Kafka" || publishDataType === "Both") && (
+                    <>
+                      <Form.Item
+                        label="Topic Name"
+                        name="publishKafka.topic"
+                        // validate={(value) =>
+                        //   !value && "Please enter topic name"
+                        // }
+                        hasFeedback
+                      // onChange={(e)=>onChangeTopic(e.target.value)}
+                      >
+                        <Input
+                          name="publishKafka.topic"
+                          placeholder="Topic Name"
+                          required={false}
+
+                        />
+                        {topicError && <div style={{ color: "red" }} >This topic exist already.</div>}
+
+                      </Form.Item>
+
+                      <Form.Item
+                        label="Host Url"
+                        name="publishKafka.host"
+                        // validate={(value) =>
+                        //   !value && "Please enter hosturl"
+                        // }
+                        hasFeedback
+                      // onChange={(e)=>onChangeHost(e.target.value)}
+                      >
+                        <Input
+                          name="publishKafka.host"
+                          placeholder="Host - such as 3.125.248.157 ..."
+                          required={false}
+                        />
+                      </Form.Item>
+                      <Form.Item
+                        label="Port"
+                        name="publishKafka.port"
+                        // validate={(value) =>
+                        //   !value && "Please enter hosturl"
+                        // }
+                        hasFeedback
+                      // onChange={(e)=>onChangePort(e.target.value)}
+                      >
+                        <Input
+                          name="publishKafka.port"
+                          placeholder="Port - such as 1883,8883 ..."
+                          required={false}
+                        />
+                      </Form.Item>
+
+
+
+
+                      <Form.Item
+                        label="Username"
+                        name="publishKafka.username"
+                        // validate={(value) =>
+                        //   !value && "Please enter hosturl"
+                        // }
+                        hasFeedback
+                      // onChange={(e)=>onChangePort(e.target.value)}
+                      >
+                        <Input
+                          name="publishKafka.username"
+                          placeholder="Username"
+                          required={false}
+                        />
+                      </Form.Item>
+
+                      <Form.Item
+                        label="password"
+                        name="publishKafka.password"
+                        // validate={(value) =>
+                        //   !value && "Please enter hosturl"
+                        // }
+                        hasFeedback
+                      // onChange={(e)=>onChangePort(e.target.value)}
+                      >
+                        <Input
+                          name="publishKafka.password"
+                          placeholder="Password"
+                          required={false}
+                        />
+                      </Form.Item>
+
+
+                      <Form.Item
+                        label="Key File"
+                        name="publishKafka.keyfile"
+                        // validate={(value) =>
+                        //   !value && "Please enter key file"
+                        // }
+                        hasFeedback
+                      >
+                        <input
+                          id="file"
+                          required={false}
+                          name="publishKafka.keyfile"
+                          type="file"
+                          onChange={(event) => {
+                            setFieldValue(
+                              "publishKafka.keyfile",
+                              event.currentTarget.files[0]
+                            );
+                          }}
+                        />
+                      </Form.Item>
+                      <Form.Item
+                        label="Crt File"
+                        name="publishKafka.crtfile"
+                        // validate={(value) =>
+                        //   !value && "Please enter crt file"
+                        // }
+                        hasFeedback
+                      >
+                        <input
+                          id="file"
+                          required={false}
+                          name="publishKafka.crtfile"
+                          type="file"
+                          onChange={(event) => {
+                            setFieldValue(
+                              "publishKafka.crtfile",
+                              event.currentTarget.files[0]
+                            );
+                          }}
+                        />
+                      </Form.Item>
+                      <Form.Item
+                        label="RootCA File"
+                        name="publishKafka.rootcafile"
+                      // validate={(value) =>
+                      //   !value && "Please enter rootca file"
+                      // }
+                      // hasFeedback
+                      >
+                        <input
+                          id="file"
+                          required={false}
+                          name="publishKafka.rootcafile"
+                          type="file"
+                          onChange={(event) => {
+                            setFieldValue(
+                              "publishKafka.rootcafile",
+                              event.currentTarget.files[0]
+                            );
+                          }}
+                        />
+                      </Form.Item>
+                    </>
+                  )}
+
+
+
+
+
                   {!isEmpty(currentSensor) && (
                     <div className="btn-download" >
                       <Button className="bg-success" onClick={handleDownloadCert}>
@@ -1030,8 +1316,8 @@ const AddSensorPage = (
                 <Button
                   type="primary"
                   htmlType="submit"
-                  disabled={!isValid || loading || creatingSensor || submitLoader || showError}
-                  loading={loading || creatingSensor || submitLoader}
+                  // disabled={!isValid || loading || creatingSensor || submitLoader || showError}
+                  // loading={loading || creatingSensor || submitLoader}
                   className="mr-3"
                 >
                   Submit

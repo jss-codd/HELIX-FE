@@ -79,7 +79,7 @@ const Sidenav = ({ solutions, roles, setClickedSolution, version }) => {
         {solutions?.map((solution) => {
           const menu = applicationList.find((item) => item.name.replaceAll(" ", "-") === `${solution}`);
 
-          console.log("--------------nenu paath name-------", menu, "location path name----", location.pathname.split("/")[1])
+          console.log("--------------nenu paath name-------", menu, "location path name----", location.pathname.split("/"))
           if (menu)
             return (
               <NavItem key={menu.name.toUpperCase()}>
@@ -93,7 +93,7 @@ const Sidenav = ({ solutions, roles, setClickedSolution, version }) => {
                   <Tooltip title={menu.name} placement="right">
                     <div
                       className={
-                        `/${location.pathname.split("/")[1]}` === `/application/${menu.name}` ? "highlight" : "rect"
+                        `/${location.pathname.split("/")[2]}` === `/${menu.name}` ? "highlight" : "rect"
                       }
                     >
                       {<img src={menu?.logo} width="30" height="30" alt="not found" />}

@@ -245,6 +245,10 @@
 div.arrow {
   width: 280px;
 }
+.flex-text{
+  display: flex;
+  justify-content: center;
+}
 
 div.arrow:before {
   content: " ";

@@ -5,17 +5,16 @@ import moment from "moment";
 import { groupBy } from "lodash";
 import TableView from "../TableView";
 import { Button, CircularProgress } from "@mui/material";
-
 function LineChart(props) {
   const customRowData = props.data;
-  const { setChartLoader, chartLoader, editableBox, idx } = props;
+  const { setChartLoader, chartLoader, zoomedHeight, editableBox, idx, setContainers, containers, zoomed } = props;
   const [jsonData, setJsonData] = useState(customRowData.data);
 
-  // useEffect(() => {
-  //   setTimeout(() => {
-  //     setChartLoader(false)
-  //   }, 3000);
-  // }, [customRowData])
+  useEffect(() => {
+    setTimeout(() => {
+      setChartLoader(false)
+    }, 3000);
+  }, [customRowData])
 
   const {
     data,
@@ -35,9 +34,12 @@ function LineChart(props) {
     xGroupBy,
     colsNumber,
     tableView,
+    xRange,
+    yRange,
   } = customRowData;
-
-  const plotHeight = tableView ? (height - 30) / 2 : (height - 30)
+  const newFontSize = zoomed === idx ? axisFontSize + 2 : axisFontSize;
+  const newheight = zoomed === idx ? zoomedHeight : 225;
+  const plotHeight = tableView && zoomed === idx ? (newheight - 30) / 2 : (newheight - 30)
   const groupbyData =
     xAxisCol &&
     groupBy(jsonData, (dt) => {
@@ -155,10 +157,14 @@ function LineChart(props) {
           ),
           textposition: "top center",
           textfont: {
-            size: axisFontSize,
+            size: newFontSize,
           },
           name: customRowData[yColName],
         };
+        if (customRowData["legendStatus"]?.includes(index)) {
+          obj.visible = "legendonly"
+        }
+        // visible: customRowData["legendStatus"]?.includes(index) ? "legendonly" : false
         dataArray.push(obj);
       });
 
@@ -181,70 +187,118 @@ function LineChart(props) {
 
 
   let layout = {
+    autosize: true,
     hovermode: "closest",
+    font: {
+      family: "sans-serif",
+      size: newFontSize,
+      color: "#000000",
+    },
     yaxis: {
       title: yAxisCol,
       tickfont: {
-        size: axisFontSize,
+        size: newFontSize,
+        color: "black"
       },
+      range: yRange
       // fixedrange: true,
       // showticklabels: showAxis,
     },
-    showlegend: true,
+    showlegend: zoomed === idx ? true : false,
     xaxis: {
       title: xAxisCol,
       tickfont: {
-        size: axisFontSize,
+        size: newFontSize,
+        color: "#000000"
       },
+      range: xRange,
       // fixedrange: true,
       // showticklabels: showAxis,
     },
-    title: title,
+    title: {
+      text: title,
+      font: {
+        size: 15,
+        color: "#000000",
+      },
+      y: zoomed === idx ? "auto" : 0.89,
+    },
     legend: {
       orientation: "v",
       y: 1,
       x: 1,
       font: {
         family: "sans-serif",
-        size: axisFontSize,
-        color: "#5c5c5c"
+        size: newFontSize,
+        color: "#000000"
         ,
       },
     },
-    width: width,
+
+    // width: zoomed === idx ? 950 : width,
     height: plotHeight,
     margin: {
-      l: 40,
+      l: 30,
       r: 20,
-      b: 70,
+      b: 50,
       t: 30,
       pad: 0,
     },
   };
   const config = {
+    responsive: true,
     scrollZoom: true,
     displayModeBar: true,
     displaylogo: false,
     modeBarButtonsToRemove: ['zoom2d', 'select2d', 'lasso2d']
   };
+  const handleLegend = (e) => {
+    setContainers((prev) =>
+      prev.map((dt, index) => {
+        if (idx === index) {
+          let arr = dt?.legendStatus ? dt?.legendStatus : []
+          if (arr.includes(e.expandedIndex)) {
+            arr.splice(arr.indexOf(e.expandedIndex), 1);
+          } else {
+            arr.push(e.expandedIndex)
+          }
+          return {
+            ...dt,
+            legendStatus: arr
+          };
+        }
+        return dt;
+      })
+    );
+  }
+
+  const handleUpdate = (layout) => {
+    let arr = containers;
+    arr[idx].yRange = layout?.yaxis?.range;
+    arr[idx].xRange = layout?.xaxis?.range;
+    setContainers(arr);
+  }
 
   return (
     <>
-      {chartLoader && editableBox === idx && (
+      {/* {chartLoader && editableBox === idx && (
         <div className="app-loader">
           <div>
             <CircularProgress size={20} color="primary" />
           </div>
         </div>
-      )}
+      )} */}
       <div style={{ height: "100%", width: "100%" }}>
         <div>
           <Plot
             data={handleLineData()}
-            layout={layout} config={config}
-            onInitialized={(figure)=>{ console.log("---sfsf--------",figure);setChartLoader(false)}}
+            layout={layout}
+            config={config}
+            onUpdate={(e) => handleUpdate(e.layout)}
+            onLegendClick={(e) => handleLegend(e)}
+            style={{ width: "100%", height: "100%" }}
           /></div>
-        {tableView && <div style={{ height: "47%" }}><TableView rowsNew={rowsNew} tableRow={tableRow} /></div>}
+        {tableView && zoomed === idx && <div style={{ height: "47%" }}><TableView rowsNew={rowsNew} tableRow={tableRow} /></div>}
       </div>
     </>
   );

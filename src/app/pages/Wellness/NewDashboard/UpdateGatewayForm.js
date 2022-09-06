@@ -32,7 +32,7 @@ const GatewayForm = ({
   const [isSameInfra,setIsSameInfra ] = useState(false);
   const [isSameFloor,setIsSameFloor] =  useState (false);
   const location = useLocation()
-  const applicationType= location.pathname.split('/')[1]
+  const applicationType= location.pathname.split('/')[2]
 
   const [gateways, setGateways] = useState([]);
   const value = useContext(AuthContext);

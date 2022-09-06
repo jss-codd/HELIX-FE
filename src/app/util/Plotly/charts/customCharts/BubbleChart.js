@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import Plot from "react-plotly.js";
 import TableView from "../TableView";
-
+import { Button, CircularProgress } from "@mui/material";
 
 function BubbleChart(props) {
   const customRowData = props.data;
-
+  const { setChartLoader, chartLoader, editableBox, zoomedHeight, idx, setContainers, containers, zoomed } = props;
   const {
     data,
     title,
@@ -17,12 +17,22 @@ function BubbleChart(props) {
     height,
     tableView,
     showLegend,
-    showAxis,
     axisFontSize,
     colsNumber,
-    barWidth,
+    xRange,
+    yRange,
   } = customRowData;
-  const plotHeight = tableView ? (height - 30) / 2 : (height - 30)
+
+  useEffect(() => {
+    setTimeout(() => {
+      setChartLoader(false)
+    }, 3000);
+  }, [customRowData])
+
+
+  const newFontSize = zoomed === idx ? axisFontSize + 2 : axisFontSize;
+  const newheight = zoomed === idx ? zoomedHeight : height;
+  const plotHeight = tableView &&  zoomed === idx ? (newheight - 30) / 2 : (newheight - 30)
   const handleData = (label) => {
     return data?.map?.((dt) => {
       return dt[label];
@@ -58,11 +68,14 @@ function BubbleChart(props) {
           },
           name: customRowData[yColName],
           textposition: "outside",
+          textfont: {
+            size: newFontSize,
+          },
           text: handleData(customRowData[yColName])
         };
-        // if (showText) {
-        //   obj.text = handleData(customRowData["xAxisCol"]);
-        // }
+        if (customRowData["legendStatus"]?.includes(index)) {
+          obj.visible = "legendonly"
+        }
         dataArray.push(obj);
       });
     return dataArray;
@@ -84,58 +97,106 @@ function BubbleChart(props) {
   const config = {
     scrollZoom: true,
     displayModeBar: true,
-    // editable: true,
+    responsive: true,
     displaylogo: false,
     modeBarButtonsToRemove: ['zoom2d']
   };
 
   const layout = {
+    autosize: true,
     yaxis: {
       title: yAxisCol,
       tickfont: {
-        size: axisFontSize,
+        size: newFontSize,
       },
+      range: yRange
       // fixedrange: true,
       // showticklabels: showAxis,
     },
-    showlegend: showLegend,
+    showlegend: zoomed === idx ? true : false,
     xaxis: {
       title: xAxisCol,
       tickfont: {
-        size: axisFontSize,
+        size: newFontSize,
       },
+      range: xRange,
       // fixedrange: true,
       // showticklabels: showAxis,
     },
-    title: title,
+    title: {
+      text: title,
+      font: {
+        size: 15,
+        color: "#000000",
+      },
+      y: zoomed === idx ? "auto" : 0.89,
+    },
     orientation: "v",
     y: 1,
     x: 1,
     font: {
       family: "sans-serif",
-      size: axisFontSize,
+      size: newFontSize,
       color: "#5c5c5c"
       ,
     },
-    width: width,
+    // width: width,
     height: plotHeight,
     margin: {
       l: 40,
       r: 20,
-      b: 70,
+      b: 50,
       t: 30,
       pad: 0,
     },
   }
+
+  const handleLegend = (e) => {
+    setContainers((prev) =>
+      prev.map((dt, index) => {
+        if (idx === index) {
+          let arr = dt?.legendStatus ? dt?.legendStatus : []
+          if (arr.includes(e.expandedIndex)) {
+            arr.splice(arr.indexOf(e.expandedIndex), 1);
+          } else {
+            arr.push(e.expandedIndex)
+          }
+          return {
+            ...dt,
+            legendStatus: arr
+          };
+        }
+        return dt;
+      })
+    );
+  }
+
+  const handleUpdate = (layout) => {
+    let arr = containers;
+    arr[idx].yRange = layout?.yaxis?.range;
+    arr[idx].xRange = layout?.xaxis?.range;
+    setContainers(arr);
+  }
+
   return (
-    <>
+    <>  {chartLoader && editableBox === idx && (
+      <div className="app-loader">
+        <div>
+          <CircularProgress size={20} color="primary" />
+        </div>
+      </div>
+    )}
       <div style={{ height: "100%", width: "100%" }}>
         <div>
-          <Plot data={handleBarData()}
+          <Plot
+            data={handleBarData()}
             layout={layout}
             config={config}
+            onUpdate={(e) => handleUpdate(e.layout)}
+            onLegendClick={(e) => handleLegend(e)}
+            style={{ width: "100%", height: "100%" }}
           /></div>
-        {tableView && <div style={{ height: "47%" }}><TableView rowsNew={rowsNew} tableRow={tableRow} /></div>}
+        {tableView &&  zoomed === idx && <div style={{ height: "47%" }}><TableView rowsNew={rowsNew} tableRow={tableRow} /></div>}
       </div>
     </>
   );

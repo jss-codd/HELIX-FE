@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useContext } from "react";
-import { useHistory, useLocation,useParams } from "react-router-dom";
+import { useHistory, useLocation, useParams } from "react-router-dom";
 import moment from "moment";
 import {
   Divider,
@@ -23,32 +23,36 @@ import { AuthContext } from "../../../../app";
 // import Chart from "../Analytics/Chart";
 // import { connect } from "react-redux";
 
-const Dashboard = ({ activeIndex, setActiveIndex, application ,match }) => {
+const Dashboard = ({ activeIndex, setActiveIndex, application, match }) => {
   const value = useContext(AuthContext);
   const keycloackValue = value;
   const [sensors, setSensors] = useState([]);
   const [selectedSensor, setSelectedSensor] = useState(null);
   const location = useLocation()
- 
-  const applicationList = application.map(d=>d.name)
+
+  const applicationList = application.map(d => d.name)
 
   const history = useHistory();
   const params = useParams()
 
- 
 
-  console.log("--------------type--------- type-----------",params );
+
+  console.log("--------------type--------- type-----------", params);
 
   const { loading, fetchData: getSensors } = useFetch({
     url: `${process.env.API_URL}/sensors?applicationType=${params?.type}`,
     method: "GET",
     onSuccess: (data) => {
+      console.log("---------PPppppppppppppppppp----------------", data);
       setSensors(data);
-      if (data.length < 1) 
-      {
-        // if (keycloackValue?.hasRealmRole("Add Sensor") ) {
-        //   history.push(`/${params?.type}/sensor`);
-        // }
+      if (data.length < 1) {
+        if (keycloackValue?.hasRealmRole("Add Sensor")) {
+          history.push(`../application/${params?.type}/sensor`);
+        }
+        else {
+          setSensors([])
+        }
+
         // history.push(`/${params?.type}/sensor`);
       } else {
         console.log("--------else------------");
@@ -77,7 +81,7 @@ const Dashboard = ({ activeIndex, setActiveIndex, application ,match }) => {
       const ss = sensors.filter((sensor) => sensor._id !== sensorId);
       setSensors([...ss]);
       if (ss.length < 1) {
-        history.push(`/${params?.type}/sensor`);
+        history.push(`/application/${params?.type}/sensor`);
       } else {
         setSelectedSensor(ss[0]);
       }
@@ -90,7 +94,7 @@ const Dashboard = ({ activeIndex, setActiveIndex, application ,match }) => {
     setSensors([])
 
     getSensors();
-  }, [location?.pathname]);
+  }, [params?.type]);
 
   useEffect(() => {
     if (selectedSensor) {
@@ -108,7 +112,7 @@ const Dashboard = ({ activeIndex, setActiveIndex, application ,match }) => {
 
   const handleEditSensor = () => {
     if (selectedSensor) {
-      history.push(`/${params?.type}/sensor/${selectedSensor._id}`);
+      history.push(`../application/${params?.type}/sensor/${selectedSensor._id}`);
     } else {
       message.error("No sensor selected!");
     }
@@ -183,7 +187,7 @@ const Dashboard = ({ activeIndex, setActiveIndex, application ,match }) => {
               style={{ marginTop: -8 }}
             />
             {/* New Dashboard */}
-            Sensor Provisioning
+            Sensor Provisioning | {params?.type}
           </h2>
         </div>
         {/* <div
@@ -223,7 +227,7 @@ const Dashboard = ({ activeIndex, setActiveIndex, application ,match }) => {
                     className="ml-3"
                     icon={<i className="fa fa-plus text-primary" />}
                     onClick={() => {
-                      history.push(`/${params?.type}/sensor`);
+                      history.push(`../application/${params?.type}/sensor`);
                     }}
                   />
                 </Tooltip>
@@ -266,7 +270,7 @@ const Dashboard = ({ activeIndex, setActiveIndex, application ,match }) => {
             <Select
               style={{ width: 360 }}
               placeholder="Select sensor"
-              value={selectedSensor?._id}
+              value={sensors.length > 0 ? selectedSensor?._id : null}
               onSelect={onSelectSensor}
               options={sensors.map((sensor) => ({
                 value: sensor._id,
@@ -280,6 +284,7 @@ const Dashboard = ({ activeIndex, setActiveIndex, application ,match }) => {
               type="default"
               className="col mb-3"
               block
+              disabled={sensors.length == 0}
               onClick={() => {
                 history.push(
                   {
@@ -294,12 +299,12 @@ const Dashboard = ({ activeIndex, setActiveIndex, application ,match }) => {
         </div>
       </div>
       {/* --------------------------- i have replace that code with plotly------------------------ */}
-      <div className="row wellness_details">
+      {sensors.length > 0 ? (<div className="row wellness_details">
         <div className="col-md-4 p-2">
-          <div className="mb-2" style={{ fontWeight: 600 }}>
-            Wellness
-            {/* Washroom i  changed int o wllnessa  */}
-          </div>
+          {/* <div className="mb-2" style={{ fontWeight: 600 }}>
+            {params?.type} */}
+          {/* Washroom i  changed int o wllnessa  */}
+          {/* </div> */}
           <div className="pl-4">
             {sensorData?.washroom?.type?.toUpperCase()}
           </div>
@@ -437,7 +442,7 @@ const Dashboard = ({ activeIndex, setActiveIndex, application ,match }) => {
             </div>
           </div>
         </div>
-      </div>
+      </div>) : null}
       {/* <div className="row p-3 mt-4">
         <div className="col border rounded p-3 h-100 bg-gray">
           <ComponentGridLayout

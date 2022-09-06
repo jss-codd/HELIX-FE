@@ -45,6 +45,8 @@ function AverageBox(props) {
                     return (pv = getStandardDeviation(colArray));
                 case "MEDIAN":
                     return (pv = median(colArray));
+                case "LETEST":
+                    return cv[container.targetCol];
                 default:
                     return cv[container.targetCol];
             }
@@ -54,12 +56,12 @@ function AverageBox(props) {
 
     return (
         <>
-            <Rnd
+            {/* <Rnd
                 onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    props.setCurrentBoxIndex(props?.idx);
-                    props.setTab(1);
+                    props.setCurrentBoxIndex(props?.idx, 1);
+                    // props.setTab(1);
                 }}
                 className={`calculation-card ${props?.is_selected ? "is_selected_cal" : ""} `}
                 position={{ x: container.xaxis, y: container.yaxis }}
@@ -115,23 +117,25 @@ function AverageBox(props) {
                         })
                     );
                 }}
+                enableResizing={false}
                 default={{
                     x: props?.xaxis,
                     y: props?.yaxis,
                     width: 150,
                     height: 75,
                 }}
-                minWidth={150}
-                minHeight={75}
-                maxWidth={200}
-                maxHeight={100}
+                // minWidth={200}
+                // minHeight={100}
+                // maxWidth={200}
+                // maxHeight={100}
                 bounds=".chart-container"
-            >  <div className="calculation-div">
+            >  */}
+             <div className="calculation-div">
                     {!container.gaugeMode ?
-                        <div className="calculation-box" style={{backgroundColor: container?.boxColor , color: container.textColor }}>
-                            <div>
+                        <div className="calculation-box" style={{ backgroundColor: container?.boxColor, color: container.textColor }}>
+                            <div className="w-full">
                                 {Title && <div className="calculation-title">
-                                {Title}
+                                    {Title}
                                 </div>}
                                 <div className="calculation-data">
                                     {CalculatedData ? CalculatedData.toFixed(2) : "00.00"}
@@ -169,7 +173,8 @@ function AverageBox(props) {
                             onClick={(e) => {
                                 e.stopPropagation();
                                 e.preventDefault();
-                                props.setCurrentBoxIndex(props.idx, e);
+                                props.setCurrentBoxIndex(props?.idx, 1);
+                                // props.setTab(1);
                             }}
                         >
                             <Edit />
@@ -177,7 +182,7 @@ function AverageBox(props) {
                     </div>
                     {/* <span className="Wh-info" id={"hightwidth" + props.idx}></span> */}
                 </div>
-            </Rnd>
+            {/* </Rnd> */}
         </>
     );
 }

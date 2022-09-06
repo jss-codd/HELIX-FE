@@ -27,7 +27,7 @@ const GatewayForm = ({ infrastructures, setFieldValue, values, setGatewayErorr }
   const value = useContext(AuthContext);
   const keycloackValue = value;
   const location = useLocation()
-  const applicationType = location.pathname.split('/')[1]
+  const applicationType = location.pathname.split('/')[2]
   
 
   const [gateways, setGateways] = useState([]);

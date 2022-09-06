@@ -4,6 +4,8 @@ import Tabs from "@material-ui/core/Tabs";
 import { Close, Delete, Edit } from "@material-ui/icons";
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
+import ZoomOutMapIcon from '@mui/icons-material/ZoomOutMap';
+import ZoomInMapIcon from '@mui/icons-material/ZoomInMap';
 import { CircularProgress } from "@mui/material";
 import { Button as Button2 } from "antd";
 import {
@@ -11,7 +13,7 @@ import {
   DialogContent, DialogTitle, Grid, IconButton, Typography
 } from "material-ui-core";
 import moment from "moment";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Rnd } from "react-rnd";
 import logo from "../assets/images/logo.svg";
 import AverageBox from "../charts/averageBox/AverageBox";
@@ -23,15 +25,20 @@ import PieChart from "../charts/customCharts/PieChart";
 import "../index.scss";
 import { ChartModes, ChartType } from "../utils/util";
 import { Prompt } from 'react-router-dom';
+import FullscreenRoundedIcon from '@mui/icons-material/FullscreenRounded';
+import DateRangeSharpIcon from '@mui/icons-material/DateRangeSharp';
+
 
 export default function CustomDashboard(props) {
-
+  const ref = useRef(null);
   const device = new URLSearchParams(location.search).get('device');
   const { containers, setContainers, chartLoader, setChartLoader, sensorData, editableBox, setEditableBox, setSaveDash, loader, setLoader } = props
   const [xaxis, setXaxis] = useState(10);
   const [yaxis, setYaxis] = useState(10);
   const [deviceId, setDeviceId] = useState(device);
-
+  const [zoomedHeight, setZoomedHeight] = useState(630);
+  const [zoomedWidth, setZoomedWidth] = useState(970);
+  const [zoomed, setZoomed] = useState("")
   const [widgetAxis, setWidgetAxis] = useState({
     x: 0,
     y: 0
@@ -47,6 +54,15 @@ export default function CustomDashboard(props) {
       return 'You have unsaved changes!';
     }
   }, []);
+
+  useEffect(() => {
+    if (document.getElementById('list')) {
+      console.log(document.getElementById('list'), "document.getElementById('list')");
+      sortable(document.getElementById('list'), function (item) {
+        console.log(item);
+      });
+    }
+  }, [document.getElementById('list')])
 
   function TabPanel(props) {
     const { children, value, index, ...other } = props;
@@ -68,6 +84,15 @@ export default function CustomDashboard(props) {
     index: "",
   });
 
+  useEffect(() => {
+    openNav();
+    const elem = document.getElementById("containerHeight");
+    if (elem) {
+      setZoomedHeight(elem.offsetHeight - 30)
+      setZoomedWidth(elem.offsetWidth - 280)
+      console.log(elem.offsetWidth, "this is the container height")
+    }
+  }, [])
 
   const componentsArray = [
     {
@@ -91,27 +116,6 @@ export default function CustomDashboard(props) {
       Component: MapChart,
     },
   ];
-
-  // /${containers[editableBox]?.startDate}/${containers[editableBox]?.endDate}
-
-
-  // useEffect(() => {
-  //   const ele = document.getElementsByClassName("resizeClass");
-  //   const eleContainer = document.getElementsByClassName("box-container-cxo");
-
-  //   if (ele?.length) {
-  //     const text = `${containers[isResizableIdx]?.height}x${containers[isResizableIdx]?.width} `;
-  //     document.getElementById("hightwidth" + isResizableIdx).innerText = text;
-
-  //     eleContainer[0].addEventListener("mouseup", function () {
-  //       document.getElementById("hightwidth" + isResizableIdx).style.display =
-  //         "none";
-  //     });
-  //   }
-  // },[]);
-
-
-
 
 
   useEffect(() => {
@@ -149,9 +153,6 @@ export default function CustomDashboard(props) {
   }, [sensorData]);
 
 
-
-
-
   const handleAddContainer = () => {
     let obj;
     let arr;
@@ -162,7 +163,7 @@ export default function CustomDashboard(props) {
       // if (containers.length  < 6) {
       if (containers.length + 1 > 0 && xaxis > 600) {
         setXaxis(10);
-        setYaxis(yaxis + 270);
+        setYaxis(yaxis + 280);
       } else {
         // if (containers.length) {
         setXaxis(xaxis + 320);
@@ -185,18 +186,21 @@ export default function CustomDashboard(props) {
         barWidth: 5,
         barGap: 2,
         scatterSize: 5,
-        height: 495,
-        width: 491,
+        height: 270,
+        width: 310,
         yColor1: "#1f77b4",
         yColor2: "#ff7f0e",
         yColor3: "#2ca02c",
         yColor4: "#d62728",
-        axisFontSize: 10,
+        axisFontSize: 8,
         showLegend: true,
         showAxis: false,
         xaxis: xaxis,
         yaxis: yaxis,
         colsNumber: 1,
+        legendStatus: [],
+        xRange: [],
+        yRange: []
       };
       // }
     }
@@ -215,8 +219,8 @@ export default function CustomDashboard(props) {
         data: [],
         height: 75,
         width: 150,
-        textColor: "#ffffff",
-        boxColor: "#dc4c0f",
+        textColor: "#404040",
+        boxColor: "#ffffff",
         xaxis: xaxis,
         yaxis: yaxis,
       };
@@ -249,17 +253,22 @@ export default function CustomDashboard(props) {
             }
 
           }
-          // console.log("----isAlreadyExists---",isAlreadyExists);
           if (!isAlreadyExists) {
-
-            return {
-              ...dt,
-              [e.target?.name]:
-                e.target.type === "checkbox"
-                  ? e.target.checked
-                  : e?.target?.value,
-            };
-
+            if (e.target?.name === "chartMode" && e.target?.value === "single data") {
+              return {
+                ...dt,
+                [e.target?.name]: e?.target?.value,
+                colsNumber: 1,
+              }
+            } else {
+              return {
+                ...dt,
+                [e.target?.name]:
+                  e.target.type === "checkbox"
+                    ? e.target.checked
+                    : e?.target?.value,
+              };
+            }
           } else {
             return dt
           }
@@ -278,10 +287,10 @@ export default function CustomDashboard(props) {
     setContainers(copyContainer);
   };
 
-  const setCurrentBoxIndex = (index) => {
+  const setCurrentBoxIndex = (index, isTab) => {
     openNav();
     setEditableBox(index);
-    setTab(0);
+    setTab(isTab);
   };
   const handleDeleteContainer = (index, event) => {
     if (index || index === 0) {
@@ -312,56 +321,45 @@ export default function CustomDashboard(props) {
     const classname = `text-white-toolButton remove-class${props.idx}`;
     return (
       <>
-        <div className="groupby-trey">
-          {/* <ToggleButtonGroup
-            color="primary"
-            value={containers[props.idx]?.xGroupBy}
-            size={"small"}
-            exclusive
-            onChange={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              handleGroupByData(e, props.idx);
-            }}
-            className={"gap-style"}
-          >
-            <ToggleButton
-              data-id={"demo"}
-              value="Seconds"
-              className={classname}
-            >
-              S<span className="tooltiptext">Seconds</span>
-            </ToggleButton>
-            <ToggleButton value="Minutes" className={classname}>
-              M<span className="tooltiptext">Minutes</span>
-            </ToggleButton>
 
-            <ToggleButton value="Hours" className={classname}>
-              H<span className="tooltiptext">Hours</span>
-            </ToggleButton>
-
-            <ToggleButton value="Day" className={classname}>
-              D<span className="tooltiptext">Day</span>
-            </ToggleButton>
-
-            <ToggleButton value="Week" className={classname}>
-              W<span className="tooltiptext">Week</span>
-            </ToggleButton>
-
-            <ToggleButton value="Month" className={classname}>
-              M<span className="tooltiptext">Month</span>
-            </ToggleButton>
-            <ToggleButton value="Year" className={classname}>
-              Y<span className="tooltiptext">Year</span>
-            </ToggleButton>
-          </ToggleButtonGroup> */}
-
-          <div
+        <div
+          className="groupby-trey">
+          <div className="group-trey-text" >sensor chart</div>
+          <div>
+            <DateRangeSharpIcon  fontSize="inherit" color='inherit' className="group-trey-icon" />
+            <Delete fontSize="inherit" color='inherit' className="group-trey-icon" />
+            <Edit fontSize="inherit" color='inherit' className="group-trey-icon" />
+            <FullscreenRoundedIcon fontSize="small" color='inherit' className="group-trey-icon-fullscreen " />
+          </div>
+          {/* <div
             style={{
               display: "flex",
               alignItems: "center",
             }}
           >
+            <div
+            > */}
+          {/* {zoomed === props.idx ?
+            <ZoomInMapIcon
+              onClick={
+                (e) => {
+                  e.preventDefault();
+                  console.log("clicked")
+                  setZoomed("")
+                }
+              }
+              className="zoomOut-icon"
+            /> :
+            <ZoomOutMapIcon
+              onClick={
+                () => {
+                  console.log("clicked")
+                  setZoomed(props.idx)
+                }
+              }
+              className="zoomOut-icon"
+            />} */}
+          {/* </div>
             <div className="dateDiv">
               <input
                 className="startdate"
@@ -370,11 +368,12 @@ export default function CustomDashboard(props) {
                 onChange={(e) => handleSelect(e)}
                 value={containers[props.idx]?.startDate}
                 name="startDate"
+                onKeyDown={(e) => e.preventDefault()}
+                data-date-inline-picker="true"
               ></input>
-              {/* <span className="mytooltip">START DATE</span> */}
             </div>
 
-            <span className="To_text" style={{ color: "#ffffff", fontSize: "14px" }}>To</span>
+            <span className="To_text">To</span>
             <div className="dateDiv">
               <input
                 className="enddate"
@@ -383,15 +382,26 @@ export default function CustomDashboard(props) {
                 onChange={(e) => handleSelect(e)}
                 value={containers[props.idx]?.endDate}
                 name="endDate"
+                onKeyDown={(e) => e.preventDefault()}
               ></input>
-              {/* <span className="mytooltip">End DATE</span> */}
             </div>
-          </div>
+          </div> */}
         </div>
         <div className="box container-perent">
-          {Component && <Component data={props?.data} idx={props.idx} editableBox={editableBox} chartLoader={chartLoader} setChartLoader={setChartLoader} />}
+          {Component && <Component
+            data={props?.data}
+            idx={props.idx}
+            editableBox={editableBox}
+            chartLoader={chartLoader}
+            setChartLoader={setChartLoader}
+            setContainers={setContainers}
+            containers={containers}
+            zoomed={zoomed}
+            zoomedHeight={zoomedHeight}
+          />
+          }
         </div>
-        <div className="option-trey" style={{ left: props?.data.width - 100 }}>
+        {/* <div className="option-trey" style={{ left: (zoomed === props.idx ? zoomedWidth : props?.data.width) - 100 }}>
           <button
             id="delete-button"
             className="delete-button"
@@ -409,12 +419,12 @@ export default function CustomDashboard(props) {
           <button
             className="edit-button"
             onClick={(e) => {
-              setCurrentBoxIndex(props.idx, e);
+              setCurrentBoxIndex(props.idx, 0);
             }}
           >
             <Edit />
           </button>
-        </div>
+        </div> */}
       </>
     );
   };
@@ -423,81 +433,112 @@ export default function CustomDashboard(props) {
     return containers.map((dt, idx) => {
       const is_selected = (idx === editableBox);
       return (
-        <div style={{ position: "relative" }}>
-          {!dt.tabName || dt.tabName !== "Widget" ? <Rnd
+        // <div style={{ position: "relative" }}>
+        !dt.tabName || dt.tabName !== "Widget" ?
+          <div
+            id={`div${idx + 1}`}
+            draggable={true}
+            // style={{ height: `200px`, width: `250px` }}
+            className={`divRec ${is_selected ? "is_selected" : ""}  ${zoomed === idx ? "zoomed-graph" : ""}`}
             onClick={(e) => {
-
+              e.preventDefault()
               setEditableBox(idx);
 
             }}
-            className={`graph-card ${is_selected ? "is_selected" : ""} `}
-            position={{ x: containers[idx]?.xaxis, y: containers[idx]?.yaxis }}
-            size={{
-              width: containers[idx]?.width,
-              height: containers[idx]?.height,
-            }}
-            resizeHandleWrapperClass="resizeClass"
-            cancel=".draglayer"
-            onDrag={(e, d) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setContainers((prev) =>
-                prev.map((dt, index) => {
-                  if (idx === index) {
-                    return {
-                      ...dt,
-                      xaxis: d.x,
-                      yaxis: d.y,
-                    };
-                  }
-                  return dt;
-                })
-              );
-            }}
-            onResizeStart={(e, direction, ref, delta, position) => {
-              setIsResizableIdx(idx);
-              // const ele = document.getElementsByClassName("resizeClass");
-              // if (ele?.length) {
-              //   ele[isResizableIdx].addEventListener("mousedown", function () {
-              //     // document.getElementById("hightwidth").id = "hightwidth-new";
-              //     document.getElementById(
-              //       "hightwidth" + isResizableIdx
-              //     ).style.display = "block";
-              //   });
-              // }
-            }}
-            onResize={(e, direction, ref, delta, position) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setContainers((prev) =>
-                prev.map((dt, index) => {
-                  if (idx === index) {
-                    return {
-                      ...dt,
-                      width: ref.offsetWidth,
-                      height: ref.offsetHeight,
-                      xaxis: position.x,
-                      yaxis: position.y,
-                    };
-                  }
-                  return dt;
-                })
-              );
-            }}
-            default={{
-              x: xaxis,
-              y: yaxis,
-              width: 491,
-              height: 495,
-            }}
-            minWidth={491}
-            minHeight={495}
-            bounds=".chart-container"
           >
+            {/* <Rnd
+              onClick={(e) => {
+
+                setEditableBox(idx);
+
+              }}
+              className={`graph-card ${is_selected ? "is_selected" : ""}  ${zoomed === idx ? "zoomed-graph" : ""}`}
+              position={{
+                x: zoomed === idx ? 0 : containers[idx]?.xaxis,
+                y: zoomed === idx ? 0 : containers[idx]?.yaxis
+              }}
+              size={{
+                width: zoomed === idx ? zoomedWidth : containers[idx]?.width,
+                height: zoomed === idx ? zoomedHeight : containers[idx]?.height,
+              }}
+              resizeHandleWrapperClass="resizeClass"
+              cancel=".draglayer"
+              onDrag={(e, d) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setContainers((prev) =>
+                  prev.map((dt, index) => {
+                    if (idx === index) {
+                      return {
+                        ...dt,
+                        xaxis: d.x,
+                        yaxis: d.y,
+                      };
+                    }
+                    return dt;
+                  })
+                );
+              }}
+              onResizeStart={(e, direction, ref, delta, position) => {
+                setIsResizableIdx(idx);
+                // const ele = document.getElementsByClassName("resizeClass");
+                // if (ele?.length) {
+                //   ele[isResizableIdx].addEventListener("mousedown", function () {
+                //     // document.getElementById("hightwidth").id = "hightwidth-new";
+                //     document.getElementById(
+                //       "hightwidth" + isResizableIdx
+                //     ).style.display = "block";
+                //   });
+                // }
+              }}
+              onResize={(e, direction, ref, delta, position) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setContainers((prev) =>
+                  prev.map((dt, index) => {
+                    if (idx === index) {
+                      return {
+                        ...dt,
+                        width: ref.offsetWidth,
+                        height: ref.offsetHeight,
+                        xaxis: position.x,
+                        yaxis: position.y,
+                      };
+                    }
+                    return dt;
+                  })
+                );
+              }}
+              enableResizing={false}
+              // disableDragging={zoomed ? true : false}
+              disableDragging={true}
+
+              default={{
+                x: xaxis,
+                y: yaxis,
+                // width: "100%",
+                // height: "100%",
+              }}
+              minWidth={310}
+              minHeight={270}
+              // maxHeight={400}
+              // maxWidth={450}
+              bounds=".chart-container"
+            > */}
+            {/* <div style={{height: `200px` , width: `250px`}}> */}
             <ContainerPerent data={dt} idx={idx} />
-            {/* <span className="Wh-info" id={"hightwidth" + idx}></span> */}
-          </Rnd>
-            :
+            {/* </div> */}
+            {/* </Rnd> */}
+          </div>
+          :
+          <div
+            id={`div${idx + 1}`}
+            draggable={true}
+            className={`divQuad ${is_selected ? "is_selected" : ""}`}
+            onClick={(e) => {
+              setEditableBox(idx);
+            }}
+          >
             <AverageBox
               idx={idx}
               setCurrentBoxIndex={setCurrentBoxIndex}
@@ -511,8 +552,7 @@ export default function CustomDashboard(props) {
               xaxis={widgetAxis.x}
               yaxis={widgetAxis.y}
             />
-          }
-        </div>
+          </div>
       );
     });
   };
@@ -576,19 +616,20 @@ export default function CustomDashboard(props) {
   };
 
   function openNav() {
-    // document.getElementById("editor-container").style.backgroundColor = "grey";
-    // document.getElementById("openbtn").style.backgroundColor = "#3a4354";
-    // document.getElementById("openbtn").style.color = "white";
     document.getElementById("mySidebar").style.width = "350px";
     document.getElementById("perent-container").style.marginLeft = "280px";
+    const elem = document.getElementById("containerHeight");
+    // setZoomedHeight(elem.offsetHeight - 30)
+    console.log(elem.offsetWidth, "this is the elem widht ")
+    // setZoomedWidth(elem.offsetWidth - 280)
   }
 
   function closeNav() {
-    // document.getElementById("editor-container").style.backgroundColor = "white";
-    // document.getElementById("openbtn").style.backgroundColor = "#3a4354";
-    // document.getElementById("openbtn").style.color = "white";
     document.getElementById("mySidebar").style.width = "0";
     document.getElementById("perent-container").style.marginLeft = "0";
+    const elem = document.getElementById("containerHeight");
+    // setZoomedHeight(elem.offsetHeight - 30)
+    setZoomedWidth(elem.offsetWidth + 280)
   }
 
   const handleClose = () => {
@@ -663,7 +704,78 @@ export default function CustomDashboard(props) {
     // }
   };
 
-  console.log(containers, "constainers-------->")
+  function sortable(section, onUpdate) {
+    var dragEl, nextEl, newPos, dragGhost;
+    console.log(section, "section");
+    let oldPos = [...section.children].map(item => {
+      item.draggable = true
+      let pos = document.getElementById(item.id).getBoundingClientRect();
+      return pos;
+    });
+
+    function _onDragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+
+      var target = e.target;
+      console.log(target.draggable, "target.draggable")
+      if (target && target !== dragEl && target.nodeName == 'DIV' && target.draggable) {
+        if (target.classList.contains('inside')) {
+          e.stopPropagation();
+        } else {
+          //getBoundinClientRect contains location-info about the element (relative to the viewport)
+          var targetPos = target.getBoundingClientRect();
+          //checking that dragEl is dragged over half the target y-axis or x-axis. (therefor the .5)
+          var next = (e.clientY - targetPos.top) / (targetPos.bottom - targetPos.top) > .5 || (e.clientX - targetPos.left) / (targetPos.right - targetPos.left) > .5;
+          console.log(target.nextSibling, "target.nextSibling")
+          console.log(target, "this is the tartget");
+          section.insertBefore(dragEl, next && target.nextSibling || target);
+
+          /*  console.log("oldPos:" + JSON.stringify(oldPos));
+           console.log("newPos:" + JSON.stringify(newPos)); */
+          /* console.log(newPos.top === oldPos.top ? 'They are the same' : 'Not the same'); */
+          console.log(oldPos);
+        }
+      }
+    }
+    function _onDragEnd(evt) {
+      evt.preventDefault();
+      newPos = [...section.children].map(child => {
+        let pos = document.getElementById(child.id).getBoundingClientRect();
+        return pos;
+      });
+      console.log(newPos);
+      dragEl.classList.remove('ghost');
+      section.removeEventListener('dragover', _onDragOver, false);
+      section.removeEventListener('dragend', _onDragEnd, false);
+
+      // eslint-disable-next-line no-unused-expressions
+      nextEl !== dragEl.nextSibling ? onUpdate(dragEl) : false;
+    }
+
+    section.addEventListener('dragstart', function (e) {
+      dragEl = e.target;
+      nextEl = dragEl.nextSibling;
+      /* dragGhost = dragEl.cloneNode(true);
+      dragGhost.classList.add('hidden-drag-ghost'); */
+
+      /*  document.body.appendChild(dragGhost);
+       e.dataTransfer.setDragImage(dragGhost, 0, 0); */
+
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('Text', dragEl.textContent);
+
+      section.addEventListener('dragover', _onDragOver, false);
+      section.addEventListener('dragend', _onDragEnd, false);
+
+      setTimeout(function () {
+        dragEl.classList.add('ghost');
+      }, 0)
+
+    });
+  }
+
+  console.log(zoomed, "zoomed-------->")
   return (
     <>
       <Prompt
@@ -694,25 +806,6 @@ export default function CustomDashboard(props) {
         <TabPanel value={tab} name="chartsMode" index={0}>
           <div>
             <div className="equ-id  ">
-              <h6 className="text-size">Chart Title</h6>
-              <input
-                className="form-select titleChart dropdown-style form-field"
-                aria-label="Default select example"
-                onChange={(e) => handleInput(e)}
-                onClick={(e) => {
-                  setTitleFocus(true)
-                }}
-                onBlur={() => {
-                  setTitleFocus(false)
-                }}
-                name="title"
-                autoFocus={titleFocus}
-                // disabled={!filterKeys.country}
-                value={containers[editableBox]?.title}
-              >
-              </input>
-            </div>
-            <div className="equ-id  ">
               <h6 className="text-size">Select Chart Type</h6>
               <select
                 className="form-select dropdown-style form-field"
@@ -732,6 +825,25 @@ export default function CustomDashboard(props) {
                 ))}
               </select>
             </div>
+            {containers[editableBox]?.chartType && <div className="equ-id  ">
+              <h6 className="text-size">Chart Title</h6>
+              <input
+                className="form-select titleChart dropdown-style form-field"
+                aria-label="Default select example"
+                onChange={(e) => handleInput(e)}
+                onClick={(e) => {
+                  setTitleFocus(true)
+                }}
+                onBlur={() => {
+                  setTitleFocus(false)
+                }}
+                name="title"
+                autoFocus={titleFocus}
+                // disabled={!filterKeys.country}
+                value={containers[editableBox]?.title}
+              >
+              </input>
+            </div>}
             {/* <div className="equ-id  ">
             <h6 className="text-size">Selected Deviced Id</h6>
             <select
@@ -781,6 +893,9 @@ export default function CustomDashboard(props) {
                           return false;
                         }
                         return true;
+
+
+
                       }).map((dt, idx) => (
                         <option key={idx} value={dt.name}>{dt.name}</option>
                       ))}
@@ -845,7 +960,7 @@ export default function CustomDashboard(props) {
                     </div>
                   )}
                 </div>
-                <div className="x-col-div">
+                {zoomed === editableBox && <div className="x-col-div">
                   <h6 className="text-size">Select Table Row Per Page</h6>
                   <select
                     className="form-select dropdown-style form-field"
@@ -859,7 +974,7 @@ export default function CustomDashboard(props) {
                     <option value="10">10</option>
                     <option value="25">25</option>
                   </select>
-                </div>
+                </div>}
 
                 {/* <div className="x-axis-div"> */}
                 <div className="x-col-div">
@@ -877,24 +992,7 @@ export default function CustomDashboard(props) {
                   </select>
                 </div>
                 {inputCols()}
-                <div className="custom-width">
-                  {/* <div className="showAxis-switch">
-                  <h6 className="text-size">Show Axis</h6>
-                  <input
-                    className="input-legend"
-                    onChange={(e) => handleSelect(e)}
-                    name="showAxis"
-                    // value={
-                    //   containers[editableBox]?.showAxis
-                    //     ? containers[editableBox]?.showAxis
-                    //     : false
-                    // }
-                    checked={containers[editableBox]?.showAxis}
-                    type="checkbox"
-                    id="axis-switch"
-                  />
-                  <label htmlFor="axis-switch">Toggle</label>
-                </div> */}
+                {zoomed === editableBox && <div className="custom-width">
                   <div className="showAxis-switch">
                     <h6 className="text-size">Show Text</h6>
                     <input
@@ -976,7 +1074,7 @@ export default function CustomDashboard(props) {
                       </div>
                     </div>
                   </div>
-                </div>
+                </div>}
                 {containers[editableBox]?.chartType === "Bar" && (
                   <div className="custom-width">
                     <div className="bar-width-div">
@@ -1317,6 +1415,7 @@ export default function CustomDashboard(props) {
               <option value="MAX">MAX</option>
               <option value="DEV">DEV</option>
               <option value="MEDIAN">MEDIAN</option>
+              <option value="LETEST">LETEST</option>
             </select>
           </div>
           <div className="option-field-avg">
@@ -1396,15 +1495,28 @@ export default function CustomDashboard(props) {
                 }}>
                   <div className="heading-text">{deviceId}</div>
                 </div>
-
-                <Button2
-                  type="default"
-                  block
-                  onClick={() => { setSaveDash(prev => prev + 1) }}
-                  style={{ width: "200px", height: "26px", fontSize: "13px" }}
-                >
-                  Save Dashboard
-                </Button2>
+                <div style={{ display: "flex" }}>
+                  <Button2
+                    type="default"
+                    block
+                    onClick={() => {
+                      setXaxis(10);
+                      setYaxis(10);
+                      setContainers([]);
+                    }}
+                    style={{ width: "200px", height: "26px", fontSize: "13px", marginRight: "10px" }}
+                  >
+                    Remove All Charts
+                  </Button2>
+                  <Button2
+                    type="default"
+                    block
+                    onClick={() => { setSaveDash(prev => prev + 1) }}
+                    style={{ width: "200px", height: "26px", fontSize: "13px" }}
+                  >
+                    Save Dashboard
+                  </Button2>
+                </div>
               </div>
             </Grid>
           </Grid>
@@ -1412,6 +1524,7 @@ export default function CustomDashboard(props) {
 
         <Grid
           container
+          id="containerHeight"
           style={{
             height: "calc(100% - 9vh - 12px )",
             flex: "1 0 auto",
@@ -1426,7 +1539,7 @@ export default function CustomDashboard(props) {
             sm={12}
             className="box-container-cxo"
           >
-            <Grid
+            {/* <Grid
               item
               xs={12}
               lg={12}
@@ -1435,10 +1548,24 @@ export default function CustomDashboard(props) {
               style={{ height: "100%" }}
               id="editor-container"
               className="box-shadow"
-            >
-              <div className="chart-container">{divContainer()}</div>
+            > */}
+            <div className="chart-container">
+              <section id="list">
+                {divContainer()}
+              </section>
+              {/* <section id="list">
+              <div id='div1' class='divRec'><div class='inside'>item 1</div></div>
+              <div id='div2' class='divQuad'><div class='inside'>item 2</div></div>
+              <div id='div3' class='divRec'><div class='inside'>item 3</div></div>
+              <div id='div4' class='divCard'><div class='inside'>item 4</div></div>
+              <div id='div5' class='divRec'><div class='inside'>item 5</div></div>
+              <div id='div6' class='divQuad'><div class='inside'>item 6</div></div>
+              <div id='div7' class='divCard'><div class='inside'>item 7</div></div>
+              <div id='div8' class='divRec'><div class='inside'>item 8</div></div>
+            </section> */}
+            </div>
 
-            </Grid>
+            {/* </Grid> */}
             <Dialog open={deletePopUp.open} maxWidth="sm" fullWidth>
               <DialogTitle>Are you sure you want delete this graph ?</DialogTitle>
               <Box position="absolute" top={0} right={0}>
@@ -1470,13 +1597,13 @@ export default function CustomDashboard(props) {
             </Dialog>
           </Grid>
           {/* <div className="opensidebar"> */}
-          <button
+          {zoomed === "" && <button
             id="openbtn"
             className="openbtn"
             onClick={() => handleAddContainer()}
           >
             +
-          </button>
+          </button>}
           {/* </div> */}
         </Grid>
       </Box>
@@ -1491,4 +1618,3 @@ export default function CustomDashboard(props) {
 // };
 // // export default LineChart;
 // export default connect(mapStateToProps, null)(CustomDashboard);
-
